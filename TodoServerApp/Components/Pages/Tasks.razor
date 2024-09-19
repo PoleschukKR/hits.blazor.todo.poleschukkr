@@ -6,38 +6,32 @@
 
 <h1>Мои задачи</h1>
 
-<table class="table table-bordered">
-	<thead>
+<div class="container">
+	@if (tasks == null) // если данные не загружены, то прописываем "Loading"
+	{
 		<tr>
-			<th>Id</th>
-			<th>Заголовок</th>
-			<th>Описание</th>
-			<th>Создано</th>
-			<th>Завершено</th>
+			<td colspan="5">Loading...</td>
 		</tr>
-	</thead>
-	<tbody>
-		@if (tasks == null)
-		{
-			<tr>
-				<td colspan="5">Loading...</td>
-			</tr>
-		}
-		else
-		{
-			@foreach(var task in tasks)
+	}
+	else
+	{
+		<div class="card-group">
+			@foreach (var task in tasks) // если объект tasks не пустой, перебираем в цикле
 			{
-				<tr>
-					<td>@task.Id</td>
-					<td>@task.Title</td>
-					<td>@task.Description</td>
-					<td>@task.CreatedDate</td>
-					<td>@task.FinishDate</td>
-				</tr>	
-			}	
-		}
-	</tbody>
-</table>
+				<div class="card">
+					<div class="card-header">
+						@task.Title
+					</div>
+					<div class="card-body">
+						<p>@task.Description</p>
+						<p>@task.CreatedDate</p>
+					</div>
+
+				</div>
+			}
+		</div>
+	}
+</div>
 @code {
 	IEnumerable<TaskItem>? tasks;
 
