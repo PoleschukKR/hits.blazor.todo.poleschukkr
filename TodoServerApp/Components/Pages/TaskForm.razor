@@ -1,4 +1,5 @@
-﻿@page "/tasks/add"
+﻿﻿
+@page "/tasks/add"
 @page "/tasks/{Id:int}"
 
 @inject IDataService data
@@ -6,7 +7,7 @@
 
 @if (TaskItem != null)
 {
-	<EditForm Model="TaskItem" FormName="TaskForm" OnValidSubmit="ValidSubmit">
+	<EditForm Model="TaskItem" FormName="TaskForm" OnSubmit="ValidSubmit">
 		<DataAnnotationsValidator />
 		<ValidationSummary />
 
@@ -16,17 +17,29 @@
 		<div class="form-group d-flex justify-content-between m-2">
 			<label class="col-form-label col-3">Заголовок</label>
 			<InputText @bind-Value="TaskItem.Title" class="form-control" />
-			<ValidationMessage For="() => TaskItem.Title" />
 		</div>
 		<div class="form-group d-flex justify-content-between m-2">
 			<label class="col-form-label col-3">Описание</label>
 			<InputTextArea @bind-Value="TaskItem.Description" class="form-control" />
-			<ValidationMessage For="() => TaskItem.Description" />
 		</div>
 		<div class="form-group d-flex justify-content-between m-2">
 			<label class="col-form-label col-3">Дата окончания</label>
-			<InputDate @bind-Value="TaskItem.FinishDate" class="form-control" />
-			<ValidationMessage For="() => TaskItem.FinishDate" />
+			<InputDate Type="InputDateType.DateTimeLocal" min="@DateTime.Today.ToString("dd-MM-yyyy")" @bind-Value="TaskItem.FinishDate" class="form-control" />
+		</div>
+		<div class="form-group d-flex justify-content-between m-2">
+			<label class="col-form-label col-3">Исполнитель</label>
+			<InputSelect class="form-select" aria-label="Default select example" @bind-Value="TaskItem.IdPerformer">
+				<option value="">Выберите исполнителя</option>
+				@if (performers != null)
+				{
+					@foreach (var performer in performers)
+					{	
+						<option value="@performer.Id">
+							@performer.Surname @performer.Name @performer.Pantronymic
+						</option>
+					}
+				}
+			</InputSelect>
 		</div>
 		<div class="btn-group">
 			<button class="btn btn-primary m-2" type="submit">Сохранить</button>
@@ -43,10 +56,15 @@
 
 	[SupplyParameterFromForm]
 	TaskItem? TaskItem { get; set; }
+	PerformerItem? PerformerItem { get; set; }
+
+	IEnumerable<PerformerItem>? performers;
 
 	protected override async Task OnInitializedAsync()
 	{
 		await base.OnInitializedAsync();
+		performers = await data.GetAllPerformerAsync(); @*Загружаем список исполнителей*@
+
 		if (TaskItem == null)
 		{
 			TaskItem = new();
@@ -57,15 +75,15 @@
 				TaskItem.Title = src.Title;
 				TaskItem.Description = src.Description;
 				TaskItem.FinishDate = src.FinishDate;
+				TaskItem.IdPerformer = src.IdPerformer;
 			}
 		}
 	}
 
-	async Task ValidSubmit()
+	async Task ValidSubmit() @*Отправка формы*@
 	{
-		await data.SaveAsync(TaskItem!);
+		await data.SaveTaskAsync(TaskItem!); @*Сохранение формы*@
 		navigate.NavigateTo("/");
-
 	}
 
 }

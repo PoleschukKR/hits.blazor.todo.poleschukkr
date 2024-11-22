@@ -5,7 +5,7 @@
 @attribute [Authorize]
 <PageTitle>Задачи</PageTitle>
 
-<h1>Мои задачи</h1>
+<h1 class="header">Мои задачи</h1>
 
 <div class="container">
 	@if (tasks == null) // если данные не загружены, то прописываем "Loading"
@@ -29,8 +29,17 @@
 					</div>
 					<div class="card-body">
 						<p>@task.Description</p>
-						<p>@task.CreatedDate</p>
+						<p>Дата создания: @task.CreatedDate</p>
+						<p>Дата завершения: @task.FinishDate</p>
+						@foreach (var performer in performers) @*Перебираем всех исполнителей, если performer.Id = task.IdPerformer, отобр ФИО*@
+						{
+							@if (performer.Id == task.IdPerformer)
+							{
+								<p>Исполнитель: @performer.Surname @performer.Name @performer.Pantronymic</p>
+							}
+						}
 					</div>
+					@*Управление задачами*@
 					<div class="card-footer">
 						<a class=" btn btn-primary" href="tasks/@task.Id">Изменить</a>
 						<button class="btn btn-primary" @onclick="async () => await DeleteTask(task.Id)">Удалить</button>
@@ -44,10 +53,14 @@
 @code {
 	IEnumerable<TaskItem>? tasks;
 
+	PerformerItem? PerformerItem { get; set; }
+	IEnumerable<PerformerItem>? performers;
+
 	protected override async Task OnInitializedAsync()
 	{
 		await base.OnInitializedAsync();
-		tasks = await data.GetAllAsync();
+		performers = await data.GetAllPerformerAsync();
+		tasks = await data.GetAllTasksAsync();
 	}
 
 	void AddTask()
@@ -57,7 +70,7 @@
 
 	async Task DeleteTask(int id)
 	{
-		await data.DeleteAsync(id);
-		tasks = await data.GetAllAsync();
+		await data.DeleteTaskAsync(id);
+		tasks = await data.GetAllTasksAsync();
 	}
 }

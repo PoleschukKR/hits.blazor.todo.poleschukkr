@@ -1,0 +1,60 @@
+﻿@*Задаем адрес страницы*@
+@page "/performer"
+@rendermode InteractiveServer
+@*Сервис для взаимодействия с данными*@
+@inject IDataService data
+@inject NavigationManager navigate
+@*Страница доступна только для авторизованных пользователей*@
+@attribute [Authorize]
+<PageTitle>Исполнители</PageTitle>
+<h1>Исполнители задач</h1>
+<div class="container">
+	@if (performers == null)
+	{
+		<tr>
+			<td colspan="5">Loading ...</td>
+		</tr>
+	}
+	else
+	{
+		<div class="btn-group m-2">
+			<button class="btn btn-primary" @onclick="AddTask">Новый исполнитель</button> @*Вызов метода AddTask*@
+		</div>
+		<div class="card-group">
+			@foreach (var performer in performers)
+			{
+				<div class="card">
+					<div class="card-header">
+						<p>Исполнитель №@performer.Id</p>
+					</div>
+					<div class="card-body">
+						<p>@performer.Surname</p>
+						<p>@performer.Name</p>
+						<p>@performer.Pantronymic</p>
+					</div>
+					<div class="card-footer">
+						<a class=" btn btn-primary" href="performers/@performer.Id">Изменить</a>
+						<button class="btn btn-primary" @onclick="async () => await DeletePerformer(performer.Id)">Удалить</button>
+					</div>
+				</div>
+			}
+		</div>
+	}
+</div>
+@code {
+	IEnumerable<PerformerItem>? performers;
+	protected override async Task OnInitializedAsync()
+	{
+		await base.OnInitializedAsync();
+		performers = await data.GetAllPerformerAsync(); @*Получает данные об исполнителях и сохр в перем performers*@
+	}
+	void AddTask()
+	{
+		navigate.NavigateTo("performer/add");
+	}
+	async Task DeletePerformer(int id) @*Удаляет исполнителя и обновляет список, снова загружая данные*@
+	{
+		await data.DeletePerformerAsync(id);
+		performers = await data.GetAllPerformerAsync();
+	}
+}
